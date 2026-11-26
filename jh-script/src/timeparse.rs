@@ -14,7 +14,10 @@ pub fn seconds_until(hhmm: &str, now: NaiveDateTime) -> Result<u64, String> {
     if target <= now {
         target += Duration::days(1);
     }
-    Ok((target - now).num_seconds().max(1) as u64)
+    // Redondeo hacia arriba: con "23:59" a las 18:09:44.6 el apagado debe caer
+    // a las 23:59:00, no a las 23:58:59.
+    let ms = (target - now).num_milliseconds();
+    Ok(((ms + 999) / 1000).max(1) as u64)
 }
 
 /// Minutos → segundos, validando el rango.
@@ -80,6 +83,12 @@ mod tests {
     fn hora_manana() {
         assert_eq!(seconds_until("23:30", at(23, 45, 0)).unwrap(), 23 * 3600 + 45 * 60);
         assert_eq!(seconds_until("22:00", at(22, 0, 0)).unwrap(), 24 * 3600);
+    }
+
+    #[test]
+    fn hora_redondea_hacia_arriba() {
+        let now = at(18, 9, 44) + Duration::milliseconds(600);
+        assert_eq!(seconds_until("18:10", now).unwrap(), 16);
     }
 
     #[test]
