@@ -1,0 +1,9 @@
+# Python (scripts legacy)
+.venv/
+__pycache__/
+
+# Rust
+jh-script/target/
+
+# Varios
+*.log
