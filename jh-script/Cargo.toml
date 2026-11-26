@@ -1,0 +1,62 @@
+[package]
+name = "jh-script"
+version = "0.1.0"
+edition = "2024"
+description = "Agente ligero para Windows: modo privacidad y apagado programado, controlable por CLI y agentes de IA"
+authors = ["jhoel0521"]
+license = "MIT"
+publish = false
+
+[lib]
+name = "jh_script"
+path = "src/lib.rs"
+
+[[bin]]
+name = "jh-script"
+path = "src/bin/jh-script.rs"
+
+[[bin]]
+name = "jh-scriptw"
+path = "src/bin/jh-scriptw.rs"
+
+[dependencies]
+clap = { version = "4.6", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+
+[dependencies.windows-sys]
+version = "0.61"
+features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Pipes",
+    "Win32_System_Threading",
+    "Win32_System_RemoteDesktop",
+    "Win32_System_StationsAndDesktops",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Power",
+    "Win32_System_Shutdown",
+    "Win32_System_Registry",
+    "Win32_System_ProcessStatus",
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_IO",
+    "Win32_Graphics_Gdi",
+    "Win32_Graphics_Dwm",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_Shell",
+    "Win32_UI_Controls",
+    "Win32_UI_HiDpi",
+]
+
+[build-dependencies]
+winresource = "0.1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
