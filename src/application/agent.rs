@@ -186,6 +186,9 @@ impl Agent {
                 let since = Local::now();
                 let until = for_secs.map(|s| since + chrono::Duration::seconds(s as i64));
                 self.privacy = Some(PrivacySession { since, until });
+                // Suelta el atajo de activación mientras dura: así el escritorio
+                // no se queda con esas teclas y el combo llega a la pantalla de bloqueo.
+                self.hotkey_port.unbind();
                 state::log("modo privacidad activado");
                 self.update_tray();
                 let extra = for_secs.map(|s| format!(" Se desactiva solo en {s} s.")).unwrap_or_default();
@@ -232,6 +235,7 @@ impl Agent {
 
     fn end_privacy(&mut self, reason: PrivacyEnd) {
         self.privacy = None;
+        self.register_hotkey();
         self.last_end = Some((reason, Local::now()));
         state::log(&format!("modo privacidad terminado: {}", reason.label()));
         if reason == PrivacyEnd::Error {

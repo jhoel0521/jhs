@@ -1,7 +1,8 @@
 // jhs: combo de desbloqueo para el modo privacidad.
 //
 // Mientras la sesión está bloqueada, escucha las teclas en la pantalla de
-// bloqueo. Si se pulsa el combo de `~/.config/jhs/unlock-combo.json`, avisa al
+// bloqueo (en `Main.uiGroup`, que es donde la pantalla de bloqueo hace su grab
+// modal; en `global.stage` no llegan). Si se pulsa el combo de `~/.config/jhs/unlock-combo.json`, avisa al
 // agente de jhs por su socket (`$XDG_RUNTIME_DIR/jhs.sock`). El agente decide:
 // solo desbloquea si el bloqueo lo activó jhs (modo privacidad); un bloqueo
 // normal (Super+L) sigue pidiendo la contraseña. La extensión no desbloquea
@@ -64,13 +65,15 @@ export default class JhsUnlockExtension extends Extension {
     _startListening() {
         if (this._eventId)
             return;
-        this._eventId = global.stage.connect('captured-event', (_actor, event) => this._onEvent(event));
+        this._grabActor = Main.uiGroup;
+        this._eventId = this._grabActor.connect('captured-event', (_actor, event) => this._onEvent(event));
     }
 
     _stopListening() {
         if (!this._eventId)
             return;
-        global.stage.disconnect(this._eventId);
+        this._grabActor.disconnect(this._eventId);
+        this._grabActor = null;
         this._eventId = 0;
     }
 
