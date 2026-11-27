@@ -1,0 +1,77 @@
+[package]
+name = "jhs"
+version = "0.2.0"
+edition = "2024"
+description = "jhs: utilidades de escritorio para Windows y Linux (modo privacidad y apagado programado) controlables por CLI y agentes de IA"
+authors = ["jhoel0521"]
+license = "Apache-2.0"
+repository = "https://github.com/jhoel0521/jhs"
+homepage = "https://jhoel0521.github.io/jhs/"
+readme = "README.md"
+keywords = ["privacy", "shutdown", "cli", "ai-agents", "lock-screen"]
+categories = ["command-line-utilities"]
+publish = false
+
+[lib]
+name = "jhs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "jhs"
+path = "src/bin/jhs.rs"
+
+[[bin]]
+name = "jhsw"
+path = "src/bin/jhsw.rs"
+
+[dependencies]
+clap = { version = "4.6", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+toml = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+
+[target.'cfg(windows)'.dependencies.windows-sys]
+version = "0.61"
+features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Pipes",
+    "Win32_System_Threading",
+    "Win32_System_RemoteDesktop",
+    "Win32_System_StationsAndDesktops",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Power",
+    "Win32_System_Shutdown",
+    "Win32_System_Registry",
+    "Win32_System_ProcessStatus",
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_IO",
+    "Win32_Graphics_Gdi",
+    "Win32_Graphics_Dwm",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_Shell",
+    "Win32_UI_Controls",
+    "Win32_UI_HiDpi",
+]
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# Icono en la bandeja (StatusNotifierItem). En GNOME requiere la extensión
+# AppIndicator (Ubuntu la trae activada). Desactivable: --no-default-features.
+ksni = { version = "0.3", optional = true, default-features = false, features = ["blocking", "async-io"] }
+
+[features]
+default = ["tray"]
+tray = ["dep:ksni"]
+
+[build-dependencies]
+winresource = "0.1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

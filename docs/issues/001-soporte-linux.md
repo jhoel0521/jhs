@@ -1,8 +1,29 @@
-# Viabilidad: jh-script en Linux
+# Viabilidad: jhs en Linux
 
-**Estado:** propuesta · **Veredicto:** viable, con una limitación en GNOME Wayland.
+**Estado:** implementado en v0.2.0 (fases 1, 2, 5 y 6), pendiente de prueba en vivo del bloqueo y del atajo · **Pendiente:** fases 3 y 4 (privacidad propia en X11 y
+Wayland wlroots).
 
-Hoy jh-script es solo para Windows (`compile_error!` en `src/lib.rs` fuera de Windows). Este documento analiza
+## Lo implementado (v0.2.0)
+
+- **Fase 1**: arquitectura hexagonal (`src/domain`, `src/ports`, `src/application`, `src/adapters/{windows,linux}`).
+  El agente de Windows conserva su bucle Win32 y comparte dominio (config, combos, apagado, protocolo); el
+  núcleo portable `application::agent` lo usa Linux. Siguiente paso: migrar Windows a ese núcleo.
+- **Fase 2**: socket Unix en `$XDG_RUNTIME_DIR/jhs.sock` (0600), rutas XDG, apagado con logind
+  `ScheduleShutdown` (vía `busctl`, con temporizador interno + `systemctl poweroff` si polkit lo niega),
+  autoarranque con `~/.config/autostart/jhs.desktop`, `status` y `doctor`.
+- **Fase 5**: privacidad = pantalla de bloqueo real (`loginctl lock-session` / `unlock-session`), con
+  `systemd-inhibit` mientras está activa y detección del desbloqueo por contraseña (`LockedHint`).
+- **Fase 6**: bandeja con `ksni` (feature `tray`) y atajo como *atajo personalizado de GNOME* vía gsettings
+  (funciona también en Wayland, sin portal), con detección de conflictos.
+
+Se descartó usar un servicio `systemd --user` para el agente: corre fuera de la sesión gráfica (sin
+`XDG_SESSION_ID` ni entorno del escritorio); el `.desktop` de autostart hereda la sesión.
+
+---
+
+*Análisis original (antes de implementar):*
+
+Hoy jhs es solo para Windows (`compile_error!` en `src/lib.rs` fuera de Windows). Este documento analiza
 qué haría falta para que el mismo CLI y el mismo agente funcionen en Linux.
 
 ## Qué se reutiliza tal cual
@@ -19,13 +40,13 @@ qué haría falta para que el mismo CLI y el mismo agente funcionen en Linux.
 
 | Función | Windows (hoy) | Linux (propuesta) | Dificultad |
 |---|---|---|---|
-| Transporte IPC | Named pipe | Socket Unix en `$XDG_RUNTIME_DIR/jh-script.sock` (permisos 0600) | Baja |
+| Transporte IPC | Named pipe | Socket Unix en `$XDG_RUNTIME_DIR/jhs.sock` (permisos 0600) | Baja |
 | "Servicio" | Agente en `HKCU\...\Run` | **Servicio de usuario systemd** (`systemctl --user`) o `.desktop` en `~/.config/autostart` | Baja |
 | Apagado programado | `shutdown.exe /s /t N` | `org.freedesktop.login1.Manager.ScheduleShutdown` vía D-Bus (crate `zbus`), o `shutdown -h +N` / `shutdown -c` | Baja |
 | No suspender | `SetThreadExecutionState` | `Inhibit("idle:sleep")` de logind (D-Bus) | Baja |
 | Bandeja | `Shell_NotifyIconW` | StatusNotifierItem (crate `ksni`). GNOME requiere la extensión AppIndicator | Media |
 | Accesos directos | `.lnk` | Archivos `.desktop` | Baja |
-| Atajo global | `RegisterHotKey` | X11: `XGrabKey`. Wayland: portal `GlobalShortcuts` o atajo del compositor que ejecute `jh-script privacy toggle` | Media |
+| Atajo global | `RegisterHotKey` | X11: `XGrabKey`. Wayland: portal `GlobalShortcuts` o atajo del compositor que ejecute `jhs privacy toggle` | Media |
 | **Modo privacidad** | Escritorio Win32 privado + hooks | Ver abajo | **Alta** |
 
 ## Modo privacidad en Linux (la parte difícil)
