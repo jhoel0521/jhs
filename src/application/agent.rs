@@ -134,6 +134,7 @@ impl Agent {
     }
 
     fn startup(&mut self) {
+        self.privacy_port.configure(&self.cfg);
         if let Some(e) = self.cfg_error.clone() {
             self.notifier.notify("jhs: revisa config.toml", &e, true);
         }
@@ -209,6 +210,21 @@ impl Agent {
             Ok(()) => {
                 self.end_privacy(PrivacyEnd::Cli);
                 Response::ok("Modo privacidad desactivado").with_data(self.privacy_json())
+            }
+            Err(e) => Response::err(format!("No se pudo desactivar el modo privacidad: {e}")),
+        }
+    }
+
+    /// Combo secreto desde la pantalla de bloqueo: solo vale si el bloqueo es
+    /// de jhs; un bloqueo normal (Super+L) sigue pidiendo la contraseña.
+    fn privacy_combo(&mut self) -> Response {
+        if self.privacy.is_none() {
+            return Response::err("El modo privacidad no está activo: el combo no desbloquea un bloqueo normal");
+        }
+        match self.privacy_port.deactivate() {
+            Ok(()) => {
+                self.end_privacy(PrivacyEnd::Combo);
+                Response::ok("Modo privacidad desactivado con el combo").with_data(self.privacy_json())
             }
             Err(e) => Response::err(format!("No se pudo desactivar el modo privacidad: {e}")),
         }
@@ -408,6 +424,7 @@ impl Agent {
         let (cfg, err) = Config::load();
         self.cfg = cfg;
         self.cfg_error = err.clone();
+        self.privacy_port.configure(&self.cfg);
         self.register_hotkey();
         self.update_tray();
         match err {
@@ -513,6 +530,7 @@ impl AgentService for Agent {
                     self.privacy_on(None)
                 }
             }
+            Request::PrivacyCombo => self.privacy_combo(),
             Request::ShutdownSchedule { seconds } => self.schedule(seconds),
             Request::ShutdownCancel => self.cancel(),
             Request::ReloadConfig => self.reload_config(),

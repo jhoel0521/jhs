@@ -12,7 +12,7 @@
 //! - `jhsw` (sin consola en Windows): agente en segundo plano y accesos directos.
 
 #[cfg(not(any(windows, target_os = "linux")))]
-compile_error!("jhs soporta Windows y Linux (ver docs/issues/001-soporte-linux.md)");
+compile_error!("jhs soporta Windows y Linux (ver https://github.com/jhoel0521/jhs/issues)");
 
 pub mod adapters;
 pub mod application;

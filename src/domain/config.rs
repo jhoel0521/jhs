@@ -71,8 +71,8 @@ pub const TEMPLATE: &str = r#"# Configuración de jhs
 # PageUp, PageDown, Up, Down, Left, Right, Pause, ScrollLock, PrintScreen, Num0-Num9.
 # Modificadores: Ctrl, Shift, Alt, Win (Super en Linux).  Ejemplo: "Ctrl+Alt+F12"
 # Linux/GNOME: el modo privacidad usa la pantalla de bloqueo de la sesión; se sale
-# con tu contraseña o con `jhs privacy off` (combo_desbloqueo y
-# al_detectar_escape solo aplican en Windows).
+# con combo_desbloqueo (vía la extensión de GNOME que instala `jhs install`), tu
+# contraseña o `jhs privacy off`. al_detectar_escape solo aplica en Windows.
 
 [privacidad]
 # Atajo global para activar el modo privacidad ("" = sin atajo).

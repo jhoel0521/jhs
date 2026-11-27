@@ -11,6 +11,7 @@
 //! | Autoarranque | `~/.config/autostart` ([`install`]) |
 
 pub mod doctor;
+pub mod gnome_unlock;
 pub mod hotkey;
 pub mod install;
 pub mod ipc;

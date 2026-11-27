@@ -170,7 +170,7 @@ jhs (CLI) ──► IPC (pipe / socket Unix, JSON por línea) ──► agente �
 ```
 
 Para llevar `jhs` a otro escritorio (Sway/Hyprland con `ext-session-lock-v1`, KDE…) basta con escribir nuevos
-adaptadores; ver [docs/issues/001-soporte-linux.md](docs/issues/001-soporte-linux.md).
+adaptadores; el plan está en las [issues](https://github.com/jhoel0521/jhs/issues).
 
 ## Desarrollo
 
@@ -190,7 +190,7 @@ publica los paquetes con `SHA256SUMS`, que es lo que descarga `jhs update`.
 | Carpeta | Qué es |
 |---|---|
 | [skills/jhs/](skills/jhs/) | Skill para agentes de IA (Claude Code y otros vía `npx skills`) |
-| [docs/](docs/) | GitHub Page (`index.html`) y análisis técnicos (`issues/`) |
+| [docs/](docs/) | GitHub Page (`index.html`) |
 | [assets/](assets/) | Icono del programa y [branding](assets/branding/) |
 | [legacy/](legacy/) | Versiones originales en Python, reemplazadas por `jhs` |
 

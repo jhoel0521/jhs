@@ -206,6 +206,8 @@ impl Agent {
             Request::ShutdownSchedule { seconds } => self.schedule(seconds),
             Request::ShutdownCancel => self.cancel(),
             Request::ReloadConfig => self.reload_config(),
+            // En Windows el combo lo detecta el propio hook del escritorio privado.
+            Request::PrivacyCombo => Response::err("no aplica en Windows"),
             Request::OpenShutdownWindow | Request::Stop => Response::ok("ok"),
         }
     }

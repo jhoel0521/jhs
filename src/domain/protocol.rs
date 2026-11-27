@@ -14,6 +14,8 @@ pub enum Request {
     },
     PrivacyOff,
     PrivacyToggle,
+    /// El combo secreto se pulsó en la pantalla de bloqueo (extensión de GNOME).
+    PrivacyCombo,
     ShutdownSchedule { seconds: u64 },
     ShutdownCancel,
     OpenShutdownWindow,

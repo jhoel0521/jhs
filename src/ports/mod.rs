@@ -31,6 +31,8 @@ pub trait AgentService {
 pub enum PrivacyEnd {
     /// `jhs privacy off`, la bandeja o el atajo.
     Cli,
+    /// El combo secreto en la pantalla de bloqueo.
+    Combo,
     /// Terminó el tiempo de `--for`.
     Timeout,
     /// El usuario desbloqueó la sesión (p. ej. con su contraseña).
@@ -43,6 +45,7 @@ impl PrivacyEnd {
     pub fn key(self) -> &'static str {
         match self {
             PrivacyEnd::Cli => "cli",
+            PrivacyEnd::Combo => "combo",
             PrivacyEnd::Timeout => "tiempo",
             PrivacyEnd::Unlocked => "desbloqueo",
             PrivacyEnd::Error => "error",
@@ -51,6 +54,7 @@ impl PrivacyEnd {
     pub fn label(self) -> &'static str {
         match self {
             PrivacyEnd::Cli => "desactivado por comando",
+            PrivacyEnd::Combo => "desbloqueado con el combo",
             PrivacyEnd::Timeout => "terminó el tiempo",
             PrivacyEnd::Unlocked => "desbloqueado en la pantalla de bloqueo",
             PrivacyEnd::Error => "error",
@@ -64,6 +68,8 @@ pub trait PrivacyPort {
     fn backend(&self) -> String;
     /// Cómo se sale del modo (se muestra al activarlo).
     fn unlock_hint(&self, cfg: &Config) -> String;
+    /// Aplica la configuración (p. ej. el combo de desbloqueo). Al arrancar y al recargar.
+    fn configure(&mut self, _cfg: &Config) {}
     fn activate(&mut self, keep_display: bool) -> Result<(), String>;
     fn deactivate(&mut self) -> Result<(), String>;
     /// Llamado cada segundo mientras está activo: `Some` si terminó por fuera.

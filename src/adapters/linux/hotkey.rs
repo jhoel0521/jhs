@@ -144,6 +144,11 @@ pub struct GnomeHotkey {
     pub exe: std::path::PathBuf,
 }
 
+/// `gsettings set` espera un GVariant: los textos van como literal entre comillas.
+fn gvariant_str(s: &str) -> String {
+    format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
+}
+
 fn shell_quote(p: &Path) -> String {
     format!("'{}'", p.display().to_string().replace('\'', r"'\''"))
 }
@@ -160,9 +165,9 @@ impl HotkeyPort for GnomeHotkey {
         }
         let path = relocatable(OUR_PATH);
         let command = format!("{} privacy toggle", shell_quote(&self.exe));
-        gsettings(&["set", &path, "name", "jhs: modo privacidad"])?;
-        gsettings(&["set", &path, "command", &command])?;
-        gsettings(&["set", &path, "binding", &accelerator(combo)])?;
+        gsettings(&["set", &path, "name", &gvariant_str("jhs: modo privacidad")])?;
+        gsettings(&["set", &path, "command", &gvariant_str(&command)])?;
+        gsettings(&["set", &path, "binding", &gvariant_str(&accelerator(combo))])?;
         let mut list = custom_list()?;
         if !list.iter().any(|p| p == OUR_PATH) {
             list.push(OUR_PATH.into());

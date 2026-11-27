@@ -8,7 +8,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
-use crate::adapters::linux::{hotkey, ipc, sys};
+use crate::adapters::linux::{gnome_unlock, hotkey, ipc, sys};
+use crate::domain::combo::Combo;
 use crate::application::app::{agent_running, wait_agent};
 use crate::domain::config::{Config, config_dir, config_path};
 use crate::domain::protocol::Request;
@@ -230,6 +231,23 @@ pub fn install() -> Result<Vec<String>, String> {
     Config::ensure_file();
     log.push(format!("Configuración: {}", config_path().display()));
 
+    if sys::is_gnome() {
+        match gnome_unlock::install() {
+            Ok(relogin) => {
+                let (cfg, _) = Config::load();
+                if let Ok(c) = Combo::parse(&cfg.privacidad.combo_desbloqueo) {
+                    let _ = gnome_unlock::write_combo(&c);
+                }
+                log.push(if relogin {
+                    "Extensión de GNOME para el combo de desbloqueo instalada: cierra sesión y vuelve a entrar una vez para activarla".into()
+                } else {
+                    "Extensión de GNOME para el combo de desbloqueo activa".into()
+                });
+            }
+            Err(e) => log.push(format!("Aviso: no se pudo instalar la extensión de GNOME: {e}")),
+        }
+    }
+
     if let Some(p) = skill_path() {
         if let Some(dir) = p.parent() {
             let _ = std::fs::create_dir_all(dir);
@@ -257,6 +275,9 @@ pub fn uninstall() -> Result<Vec<String>, String> {
     log.push("Autoarranque eliminado".into());
     if hotkey::remove_binding() {
         log.push("Atajo de GNOME eliminado".into());
+    }
+    if gnome_unlock::uninstall() {
+        log.push("Extensión de GNOME eliminada".into());
     }
     remove_launchers();
     log.push("Lanzadores eliminados".into());

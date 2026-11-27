@@ -3,7 +3,7 @@
 
 use serde_json::Value;
 
-use crate::adapters::linux::{hotkey, install, sys};
+use crate::adapters::linux::{gnome_unlock, hotkey, install, sys};
 use crate::domain::combo::Combo;
 use crate::domain::config::{Config, config_path};
 use crate::domain::doctor::{Check, Level, agent_check, check};
@@ -100,11 +100,7 @@ pub fn collect(status: Option<&Value>, cfg: &Config, cfg_error: Option<&str>) ->
             },
         }
     }
-    v.push(check(
-        "Combo de desbloqueo",
-        Level::Ok,
-        "en Linux no aplica: se desbloquea con tu contraseña o `jhs privacy off`",
-    ));
+    v.push(unlock_combo_check(cfg));
 
     // Bandeja
     if !cfg!(feature = "tray") {
@@ -156,4 +152,31 @@ pub fn collect(status: Option<&Value>, cfg: &Config, cfg_error: Option<&str>) ->
     }
 
     v
+}
+
+fn unlock_combo_check(cfg: &Config) -> Check {
+    const NAME: &str = "Combo de desbloqueo";
+    let combo = match Combo::parse(&cfg.privacidad.combo_desbloqueo) {
+        Ok(c) => c,
+        Err(e) => return check(NAME, Level::Error, e),
+    };
+    if !sys::is_gnome() {
+        return check(NAME, Level::Aviso, "solo en GNOME; aquí se sale con tu contraseña o `jhs privacy off`");
+    }
+    if !gnome_unlock::installed() {
+        return check(NAME, Level::Aviso, "extensión de GNOME no instalada (`jhs install`); se sale con contraseña o `privacy off`");
+    }
+    if gnome_unlock::user_extensions_disabled() {
+        return check(NAME, Level::Error, "GNOME tiene desactivadas las extensiones de usuario (actívalas en la app Extensiones)");
+    }
+    if !gnome_unlock::enabled() {
+        return check(NAME, Level::Error, "la extensión está instalada pero desactivada (`jhs install` la activa)");
+    }
+    match gnome_unlock::shell_state() {
+        Some(s) if s.eq_ignore_ascii_case("ACTIVE") || s.eq_ignore_ascii_case("ENABLED") => {
+            check(NAME, Level::Ok, format!("{combo} desbloquea el modo privacidad desde la pantalla de bloqueo"))
+        }
+        Some(s) => check(NAME, Level::Error, format!("la extensión de GNOME está en estado {s} (revisa `journalctl --user -b | grep jhs`)")),
+        None => check(NAME, Level::Aviso, "extensión instalada: cierra sesión y vuelve a entrar una vez para activarla"),
+    }
 }

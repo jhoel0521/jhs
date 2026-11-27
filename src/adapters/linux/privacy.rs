@@ -13,7 +13,8 @@ use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
-use crate::adapters::linux::sys;
+use crate::adapters::linux::{gnome_unlock, sys};
+use crate::domain::combo::Combo;
 use crate::domain::config::Config;
 use crate::domain::paths::runtime_dir;
 use crate::domain::state;
@@ -92,8 +93,27 @@ impl PrivacyPort for LockScreen {
         }
     }
 
-    fn unlock_hint(&self, _cfg: &Config) -> String {
-        "tu contraseña en la pantalla de bloqueo o `jhs privacy off`".into()
+    fn unlock_hint(&self, cfg: &Config) -> String {
+        match Combo::parse(&cfg.privacidad.combo_desbloqueo) {
+            Ok(c) if sys::is_gnome() && gnome_unlock::active() => {
+                format!("{c}, tu contraseña o `jhs privacy off`")
+            }
+            _ => "tu contraseña en la pantalla de bloqueo o `jhs privacy off`".into(),
+        }
+    }
+
+    fn configure(&mut self, cfg: &Config) {
+        if !gnome_unlock::installed() {
+            return;
+        }
+        match Combo::parse(&cfg.privacidad.combo_desbloqueo) {
+            Ok(c) => {
+                if let Err(e) = gnome_unlock::write_combo(&c) {
+                    state::log(&format!("no se pudo escribir el combo de desbloqueo: {e}"));
+                }
+            }
+            Err(e) => state::log(&format!("combo_desbloqueo inválido: {e}")),
+        }
     }
 
     fn activate(&mut self, keep_display: bool) -> Result<(), String> {
