@@ -3,7 +3,7 @@
 __pycache__/
 
 # Rust
-jh-script/target/
+target/
 
 # Varios
 *.log

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>jhs · modo privacidad y apagado programado</title>
+<meta name="description" content="jhs: CLI y agente ligero para Windows y Linux. Oculta la pantalla y bloquea la entrada mientras tus programas siguen corriendo, y programa el apagado. Pensado para agentes de IA.">
+<meta property="og:title" content="jhs">
+<meta property="og:description" content="Modo privacidad sin cerrar nada y apagado programado, para Windows y Linux, controlable por CLI y agentes de IA.">
+<meta property="og:url" content="https://jhoel0521.github.io/jhs/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #f8f8fc; --fg: #1b1a2e; --muted: #5b5a73; --card: #ffffff; --line: #e3e2ef;
+    --accent: #4f46e5; --accent-2: #312e81; --code-bg: #14132a; --code-fg: #e0e7ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0d0c1d; --fg: #ecebf7; --muted: #a3a2bd; --card: #16152b; --line: #29284a;
+            --accent: #a5b4fc; --accent-2: #818cf8; --code-bg: #07061a; --code-fg: #e0e7ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Ubuntu, sans-serif; }
+  a { color: var(--accent); }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 56px 0 32px; text-align: center; }
+  header img { width: 96px; height: 96px; }
+  h1 { font: 700 44px/1.1 ui-monospace, "SF Mono", "Cascadia Code", "Ubuntu Mono", monospace; margin: 16px 0 8px; }
+  .tagline { font-size: 19px; color: var(--muted); max-width: 640px; margin: 0 auto 24px; }
+  .btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 10px 18px; border-radius: 10px; text-decoration: none; font-weight: 600;
+         border: 1px solid var(--line); color: var(--fg); background: var(--card); }
+  .btn.primary { background: var(--accent-2); color: #fff; border-color: transparent; }
+  section { padding: 28px 0; }
+  h2 { font-size: 24px; margin: 0 0 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 0; color: var(--muted); }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 16px; border-radius: 12px; overflow-x: auto;
+        font: 14px/1.55 ui-monospace, "Cascadia Code", "Ubuntu Mono", monospace; margin: 0 0 12px; }
+  code { font-family: ui-monospace, "Cascadia Code", "Ubuntu Mono", monospace; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+  .tabs button { font: inherit; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line);
+                 background: var(--card); color: var(--fg); cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--accent-2); color: #fff; border-color: transparent; }
+  .panel[hidden] { display: none; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line);
+          border-radius: 12px; overflow: hidden; display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  footer { padding: 32px 0 48px; color: var(--muted); text-align: center; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg viewBox="0 0 256 256" width="96" height="96" aria-hidden="true">
+      <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#312e81"/><stop offset="1" stop-color="#4f46e5"/></linearGradient></defs>
+      <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+      <rect x="44" y="58" width="168" height="112" rx="14" fill="#0b0a1f" stroke="#e0e7ff" stroke-width="10"/>
+      <rect x="112" y="170" width="32" height="22" fill="#e0e7ff"/><rect x="84" y="190" width="88" height="12" rx="6" fill="#e0e7ff"/>
+      <circle cx="128" cy="104" r="17" fill="#a5b4fc"/><path d="M119 114 h18 l7 30 h-32 z" fill="#a5b4fc"/>
+    </svg>
+    <h1>jhs</h1>
+    <p class="tagline">Oculta la pantalla y bloquea teclado y mouse <b>sin cerrar nada</b>, y programa el apagado.
+      Para Windows y Linux, desde la terminal o desde tu agente de IA.</p>
+    <div class="btns">
+      <a class="btn primary" href="https://github.com/jhoel0521/jhs/releases/latest">Descargar</a>
+      <a class="btn" href="https://github.com/jhoel0521/jhs">Código en GitHub</a>
+    </div>
+  </header>
+
+  <section>
+    <div class="grid">
+      <div class="card"><h3>Modo privacidad</h3><p>Tus servidores, pruebas y descargas siguen corriendo mientras nadie puede ver ni tocar el PC.</p></div>
+      <div class="card"><h3>Apagado programado</h3><p>En N minutos o a una hora exacta, con avisos y cancelación en un comando.</p></div>
+      <div class="card"><h3>Hecho para IA</h3><p>Salida <code>--json</code>, códigos de salida estables y una skill versionada para Claude Code.</p></div>
+      <div class="card"><h3>Ligero y sin admin</h3><p>Un agente en tu sesión, en Rust. Se instala sin administrador ni <code>sudo</code> y se actualiza solo con <code>jhs update</code>.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Instalación</h2>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="linux">Linux</button>
+      <button role="tab" aria-selected="false" data-tab="windows">Windows</button>
+      <button role="tab" aria-selected="false" data-tab="source">Código fuente</button>
+    </div>
+    <div class="panel" data-panel="linux"><pre>tar -xzf jhs-*-linux-x86_64.tar.gz
+./jhs-*/jhs install</pre></div>
+    <div class="panel" data-panel="windows" hidden><pre>Expand-Archive jhs-*-windows-x86_64.zip .
+.\jhs-*\jhs.exe install</pre></div>
+    <div class="panel" data-panel="source" hidden><pre>git clone https://github.com/jhoel0521/jhs && cd jhs
+cargo build --release
+./target/release/jhs install</pre></div>
+    <p>Skill para agentes de IA (Claude Code y otros), con <a href="https://skills.sh">npx skills</a>:</p>
+    <pre>npx skills add jhoel0521/jhs --skill jhs -g -a claude-code -y
+npx skills update jhs -g -y</pre>
+  </section>
+
+  <section>
+    <h2>Uso</h2>
+    <pre>jhs --off-screen            # modo privacidad
+jhs privacy on --for 600    # …durante 10 minutos
+jhs --on-screen             # volver
+jhs shutdown in 90          # apagar en 90 minutos
+jhs programar-apagado 23:30
+jhs cancelar-apagado
+jhs status --json
+jhs update --check</pre>
+  </section>
+
+  <section>
+    <h2>Cómo funciona</h2>
+    <table>
+      <tr><th></th><th>Windows</th><th>Linux (Ubuntu / GNOME)</th></tr>
+      <tr><td>Privacidad</td><td>Escritorio privado de Win32 con combo secreto de desbloqueo</td><td>Pantalla de bloqueo real de la sesión (logind); sale con tu contraseña o <code>jhs privacy off</code></td></tr>
+      <tr><td>Apagado</td><td><code>shutdown.exe</code></td><td>logind <code>ScheduleShutdown</code></td></tr>
+      <tr><td>Atajo</td><td><code>RegisterHotKey</code></td><td>Atajo personalizado de GNOME</td></tr>
+      <tr><td>Bandeja</td><td>Área de notificación</td><td>StatusNotifierItem (AppIndicator)</td></tr>
+    </table>
+  </section>
+
+  <footer>
+    <a href="https://github.com/jhoel0521/jhs">jhoel0521/jhs</a> · Licencia
+    <a href="https://github.com/jhoel0521/jhs/blob/main/LICENSE">Apache-2.0</a>: si lo redistribuyes, conserva el
+    <a href="https://github.com/jhoel0521/jhs/blob/main/NOTICE">NOTICE</a> con la mención al autor.
+  </footer>
+</div>
+<script>
+  document.querySelectorAll('.tabs button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.tabs button').forEach(function (x) { x.setAttribute('aria-selected', x === b); });
+      document.querySelectorAll('.panel').forEach(function (p) { p.hidden = p.dataset.panel !== b.dataset.tab; });
+    });
+  });
+</script>
+</body>
+</html>
